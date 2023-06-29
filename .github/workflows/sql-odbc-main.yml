@@ -60,18 +60,7 @@ jobs:
         path: src/vcpkg_installed
         key: ${{ steps.get-key.outputs.key }}
 
-    - name: Create-output
-      if: success()
-      run: |
-        mkdir build-output
-        mkdir test-output
-        mkdir installer
-        cp ./build/odbc/lib/*.dylib build-output/
-        cp ./build/odbc/lib/*.a build-output/
-        cp ./cmake-build64/*.pkg installer/
-    # cp $(ls -d ./build/odbc/bin/* | grep -v "\.") build-output
-    #    cp ./bin64/*.html test-output
-    #    cp ./bin64/*.log test-output
+
     - name: Upload test
       if: success()
       uses: actions/upload-artifact@v3
