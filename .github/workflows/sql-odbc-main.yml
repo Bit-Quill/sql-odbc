@@ -22,7 +22,16 @@ jobs:
     runs-on: macos-12
     steps:
     - uses: actions/checkout@v3
-
+    - name: Run cppcheck
+      run: |
+        brew install cppcheck
+        sh run_cppcheck.sh
+    - name: Upload cppcheck results
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: cppcheck-results
+        path: cppcheck-results.log
     - name: Get dependencies
       run: |
         brew install curl
@@ -44,14 +53,37 @@ jobs:
 
     - name: Configure and build driver
       run: |
-        echo ===========================
-        tree .
-        echo ===========================
         ./build_mac_release64.sh
-        echo ===========================
-        tree .
-        echo ===========================
 
+    - name: Save vcpkg cache
+      uses: actions/cache/save@v3
+      with:
+        path: src/vcpkg_installed
+        key: ${{ steps.get-key.outputs.key }}
+
+    #- name: test
+    #  run: | 
+    #    bash ./run_test_runner.sh
+    - name: Build installer
+      if: success()
+      run: |
+        echo ===============
+        tree -D
+        echo ===============
+        cd cmake-build64
+        cmake ../src
+        echo ===============
+        tree -D
+        echo ===============
+        make
+        echo ===============
+        tree -D
+        echo ===============
+        cpack .
+        echo ===============
+        tree -D
+        echo ===============
+        cd ..
     - name: Create-output
       if: success()
       run: |
@@ -70,3 +102,17 @@ jobs:
       with:
         name: mac64-build
         path: build-output
+    - name: Upload installer
+      if: success()
+      uses: actions/upload-artifact@v3
+      with:
+        name: mac64-installer
+        path: installer
+    #- name: Upload test results
+    #  if: always()
+    #  uses: actions/upload-artifact@v3
+    #  with:
+    #    name: mac-test-results
+    #    path: test-output
+
+ 
