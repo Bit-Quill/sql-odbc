@@ -37,7 +37,6 @@ jobs:
         brew install curl
         brew install cmake
         brew install libiodbc
-        brew install tree
 
     - name: Get vcpkg config fingerprint
       id: get-key
@@ -67,22 +66,10 @@ jobs:
     - name: Build installer
       if: success()
       run: |
-        echo ===============
-        tree -D
-        echo ===============
         cd cmake-build64
-        cmake ../src
-        echo ===============
-        tree -D
-        echo ===============
+        cmake ../src 
         make
-        echo ===============
-        tree -D
-        echo ===============
         cpack .
-        echo ===============
-        tree -D
-        echo ===============
         cd ..
     - name: Create-output
       if: success()
@@ -96,18 +83,14 @@ jobs:
     # cp $(ls -d ./build/odbc/bin/* | grep -v "\.") build-output
     #    cp ./bin64/*.html test-output
     #    cp ./bin64/*.log test-output
-    - name: Upload build
+    - name: Upload test
       if: success()
       uses: actions/upload-artifact@v3
       with:
-        name: mac64-build
-        path: build-output
-    - name: Upload installer
-      if: success()
-      uses: actions/upload-artifact@v3
-      with:
-        name: mac64-installer
-        path: installer
+        name: test
+        path: |
+          build
+          cmake-build64
     #- name: Upload test results
     #  if: always()
     #  uses: actions/upload-artifact@v3
