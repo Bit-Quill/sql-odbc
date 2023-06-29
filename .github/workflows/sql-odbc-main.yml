@@ -38,20 +38,28 @@ jobs:
         brew install cmake
         brew install libiodbc
 
-    - name: unpack
-      run: unzip test.zip
+    - name: Get vcpkg config fingerprint
+      id: get-key
+      run:  |
+        echo key=`md5 src/vcpkg.json | cut -d ' ' -f 4`-mac >> $GITHUB_OUTPUT
 
-    #- name: test
-    #  run: | 
-    #    bash ./run_test_runner.sh
-    - name: Build installer
-      if: success()
+    - name: Restore vcpkg cache
+      id: cache-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: src/vcpkg_installed
+        key: ${{ steps.get-key.outputs.key }}
+
+    - name: Configure and build driver
       run: |
-        cd cmake-build64
-        cmake ../src 
-        make
-        cpack .
-        cd ..
+        ./build_mac_release64.sh
+
+    - name: Save vcpkg cache
+      uses: actions/cache/save@v3
+      with:
+        path: src/vcpkg_installed
+        key: ${{ steps.get-key.outputs.key }}
+
     - name: Create-output
       if: success()
       run: |
@@ -61,17 +69,23 @@ jobs:
         cp ./build/odbc/lib/*.dylib build-output/
         cp ./build/odbc/lib/*.a build-output/
         cp ./cmake-build64/*.pkg installer/
+    # cp $(ls -d ./build/odbc/bin/* | grep -v "\.") build-output
+    #    cp ./bin64/*.html test-output
+    #    cp ./bin64/*.log test-output
+    - name: Upload test
+      if: success()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test
+        path: |
+          build
+          cmake-build64
+          src/vcpkg_installed
+    #- name: Upload test results
+    #  if: always()
+    #  uses: actions/upload-artifact@v3
+    #  with:
+    #    name: mac-test-results
+    #    path: test-output
 
-    - name: Upload build
-      if: success()
-      uses: actions/upload-artifact@v3
-      with:
-        name: mac64-build
-        path: build-output
-    - name: Upload installer
-      if: success()
-      uses: actions/upload-artifact@v3
-      with:
-        name: mac64-installer
-        path: installer
  
