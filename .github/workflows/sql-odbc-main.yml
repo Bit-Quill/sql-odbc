@@ -48,7 +48,6 @@ jobs:
       if: success()
       run: |
         cd cmake-build64
-        cmake ../src 
         make
         cpack .
         cd ..
