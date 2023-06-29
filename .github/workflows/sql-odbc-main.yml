@@ -48,6 +48,7 @@ jobs:
       if: success()
       run: |
         cd cmake-build64
+        cmake ../src 
         make
         cpack .
         cd ..
@@ -60,7 +61,7 @@ jobs:
         cp ./build/odbc/lib/*.dylib build-output/
         cp ./build/odbc/lib/*.a build-output/
         cp ./cmake-build64/*.pkg installer/
-        
+
     - name: Upload build
       if: success()
       uses: actions/upload-artifact@v3
